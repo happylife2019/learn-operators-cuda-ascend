@@ -1,0 +1,43 @@
+# Build outputs
+build/
+out/
+bin/
+lib/
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.exe
+*.pdb
+
+# CUDA build files
+*.cubin
+*.fatbin
+*.ptx
+*.ncu-rep
+*.nsys-rep
+
+# Ascend build files
+*.om
+*.log
+*.dump
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Editors and operating systems
+.vscode/
+.idea/
+.vs/
+.DS_Store
+Thumbs.db

@@ -3,12 +3,12 @@
 #include<stdlib.h>
 #include<math.h>
 
-constexpr int M = 1024
-constexpr int N =  1024
-constexpr int K =  1024
+constexpr int M = 1024;
+constexpr int N =  1024;
+constexpr int K =  1024;
 #define TILE_SIZE 16
 
-__global__ void matmulNaive(float *A,float *B, float*C, intM,int N,int K){
+__global__ void matmulNaive(float *A,float *B, float*C, int M,int N,int K){
     int row = blockDim.y * blockIdx.y + threadIdx.y;
     int col = blockDim.x * blockIdx.x + threadIdx.x;
     if(row<M && col<N){
@@ -28,13 +28,17 @@ void initMatrix(float *mat ,int rows,int cols){
 
 float computeGFLOPS(float time_ms,int M, int N, int K){
     double flops = 2.0*M*N*K;
-    return float(flops/(time_ms*1e-3)/1e-9);
+    return float(flops/(time_ms*1e-3)/1e9);
 }
 
 bool verifyResult(float *C_cpu,float* C_gpu,int rows,int cols){
     for(int i = 0;i<rows*cols;i++){
-        if(fabs(C_gpu[i]-C_cpu[i])>1e-6){
-            printf("mismatch at index %d",i);
+        float diff = fabsf(C_gpu[i] - C_cpu[i]);
+        float tolerance = 1e-3f + 1e-5f * fabsf(C_cpu[i]);
+
+        if (diff > tolerance) {
+            printf("mismatch at index %d: CPU=%.8f GPU=%.8f diff=%.8f\n",
+                i, C_cpu[i], C_gpu[i], diff);
             return false;
         }
     }

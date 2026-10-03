@@ -8,8 +8,9 @@
 | --- | --- | --- | --- | --- | --- |
 | Naive | [`navie_gemm/`](navie_gemm/) | PASS | 1.109 ms | 1936.43 GFLOPS | AutoDL 单次运行；源码路径待统一 |
 | Shared Memory Tiled | [`shared_memory/`](shared_memory/) | PASS | 0.834 ms | 2576.35 GFLOPS | AutoDL 单次运行；相对 Naive 约 1.33×，待多轮复测 |
+| Thread-Tiled Shared Memory | [`shared_memory_v2/`](shared_memory_v2/) | PASS | 0.671 ms | 3201.76 GFLOPS | AutoDL 单次普通运行；另有 [Nsight Systems 记录](shared_memory_v2/README.md) |
 
-上表数字来自 RTX 3080 Ti 的运行截图，Naive 测于 2026-09-29，Shared Memory Tiled 测于 2026-09-30。两版都还没有预热、多轮统计；Naive 运行路径与仓库路径也尚未统一。因此 1.33× 只是单次时间的比值，不是正式加速比。
+上表数字来自 RTX 3080 Ti 的运行截图，Naive 测于 2026-09-29，Shared Memory Tiled 测于 2026-09-30，Thread-Tiled 测于 2026-10-03。表中各版并非同一次受控对比；Naive 运行路径与仓库路径也尚未统一。因此表内时间和比值只是阶段性记录，不是正式加速比。
 
 ## 每版记录什么
 
@@ -19,11 +20,10 @@
 4. **性能**：只计 Kernel 的时间；预热后多次运行，记中位数、GFLOPS，以及相对 Naive 的加速比。
 5. **分析**：提出瓶颈假设，用 Profiling 数据验证；没有测量就写“未测”，不填估计值。
 
-下一版继续建立独立目录，保留 `navie_gemm/` 和 `shared_memory/` 两版源码。只有正确性通过且按同一测量方法得到稳定时间后，才将新数据加入上表。
+各版保留独立目录与实测说明；后续同条件对比时再补正式加速比。
 
 ## Profiling 放在哪一步
 
-- **现在**：先让 Naive 的源码路径和实测版本一致，并完成预热、多轮计时。单次 1.109 ms 只作运行记录。
-- **稳定基线之后**：用 Nsight Compute 测 Naive 的计算吞吐、DRAM/L2 访问、占用率等，形成优化前的证据。Profiler 运行时的耗时不要代替普通 benchmark 耗时。
-- **每完成一个优化版**：先验证正确性，再用相同方法测性能。若收益不符合预期，再用 Nsight Compute 对照前后指标定位原因。
-- **出现多次 Kernel 启动、数据拷贝或异步流水线时**：再用 Nsight Systems 看整段时间线和重叠情况。当前单个 Naive Kernel 不急着做这一步。
+- **目前可用**：AutoDL 上的 Nsight Systems 可以核对 kernel 次数、启动配置、GPU 时间线以及数据拷贝。Profiler 中的时间与普通 CUDA Event 计时分开记录。
+- **目前受限**：此 AutoDL 容器运行 Nsight Compute 返回 `ERR_NVGPUCTRPERM`，不能读取占用率、访存吞吐、stall 等硬件计数器。仅凭 Nsight Systems 时间线不推断这些瓶颈。
+- **后续**：若获得性能计数器权限，再对照各版分析实际访存与计算瓶颈；在此之前先保持源码、正确性与可复现命令完整。
